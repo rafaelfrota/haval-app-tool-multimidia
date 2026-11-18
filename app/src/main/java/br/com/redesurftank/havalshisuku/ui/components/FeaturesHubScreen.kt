@@ -59,11 +59,13 @@ fun FeaturesHubScreen() {
         "ambient_light" -> AmbientLightSettingsScreen(onBackToFeatures = { selectedFeature = null })
         "radar" -> RadarSettingsScreen(onBackToFeatures = { selectedFeature = null })
         "gestures" -> GestureSettingsScreen(onBackToFeatures = { selectedFeature = null })
+        "energy" -> br.com.redesurftank.havalshisuku.energy.TripEnergyScreen(onBackToFeatures = { selectedFeature = null })
         else -> FeaturesHome(
             onOpenScore = { selectedFeature = "score" },
             onOpenAmbientLight = { selectedFeature = "ambient_light" },
             onOpenRadar = { selectedFeature = "radar" },
-            onOpenGestures = { selectedFeature = "gestures" }
+            onOpenGestures = { selectedFeature = "gestures" },
+            onOpenEnergy = { selectedFeature = "energy" }
         )
     }
 }
@@ -73,7 +75,8 @@ private fun FeaturesHome(
     onOpenScore: () -> Unit,
     onOpenAmbientLight: () -> Unit,
     onOpenRadar: () -> Unit,
-    onOpenGestures: () -> Unit
+    onOpenGestures: () -> Unit,
+    onOpenEnergy: () -> Unit
 ) {
     val prefs =
         App.getDeviceProtectedContext()
@@ -154,6 +157,13 @@ private fun FeaturesHome(
                     onClick = {}
                 )
             } else {
+                EnergyFeatureCard(Modifier.weight(1f), onOpenEnergy)
+            }
+        }
+
+        if (ambientLightEnabled) {
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(18.dp)) {
+                EnergyFeatureCard(Modifier.weight(1f), onOpenEnergy)
                 Spacer(modifier = Modifier.weight(1f))
             }
         }
@@ -252,4 +262,18 @@ private fun FeatureCard(
             }
         }
     }
+}
+
+
+@Composable
+private fun EnergyFeatureCard(modifier: Modifier, onClick: () -> Unit) {
+    FeatureCard(
+        title = "Energia da viagem",
+        description = "kWh gastos e regenerados, % no elétrico, gasolina e custo em reais de cada viagem.",
+        status = "Disponível",
+        icon = Icons.Default.Speed,
+        enabled = true,
+        modifier = modifier,
+        onClick = onClick
+    )
 }

@@ -571,6 +571,12 @@ enum class SharedPreferencesKeys(val key: String, val description: String) {
             "clusterWarningDismissedCards",
             "Avisos do cluster dispensados neste boot, restaurados se o app reiniciar no meio do trajeto"
     ),
+    // ===== Energia por viagem (fork rafaelfrota) =====
+    TRIP_ENERGY_CURRENT("tripEnergyCurrent", "Viagem corrente da energia (JSON)"),
+    TRIP_ENERGY_HISTORY("tripEnergyHistory", "Últimas viagens da energia (JSON)"),
+    TRIP_ENERGY_TARIFF("tripEnergyTariff", "Preço do kWh na conta de luz (R$)"),
+    TRIP_ENERGY_FUEL_PRICE("tripEnergyFuelPrice", "Preço do litro da gasolina (R$)"),
+    TRIP_ENERGY_CHARGE_LOSS("tripEnergyChargeLoss", "Perda na recarga em casa (%)"),
     // ===== Barra do ar na borda esquerda (fork rafaelfrota) =====
     LEFT_AC_RAIL_ENABLED(
             "leftAcRailEnabled",

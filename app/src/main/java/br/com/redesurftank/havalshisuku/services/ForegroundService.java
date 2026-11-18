@@ -818,6 +818,12 @@ public class ForegroundService extends Service implements Shizuku.OnBinderDeadLi
         }
 
         try {
+            br.com.redesurftank.havalshisuku.energy.TripEnergyTracker.INSTANCE.start();
+        } catch (Exception e) {
+            Log.e(TAG, "Error starting TripEnergyTracker: " + e.getMessage(), e);
+        }
+
+        try {
             HotRouterManager.getInstance().onServicesReady();
         } catch (Exception e) {
             Log.e(TAG, "Error starting HotRouter: " + e.getMessage(), e);
