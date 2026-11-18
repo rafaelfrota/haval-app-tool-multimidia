@@ -172,6 +172,17 @@ object AndroidAutoClusterController {
         mainHandler.postDelayed(flushDirectionsRunnable, AndroidAutoNavigationTelemetry.THROTTLE_MS)
     }
 
+    /**
+     * Setas de outra fonte (CarPlay, ver CarPlayGuidanceMonitor): mesmo HUD e mesmo tema, mas sem
+     * mexer no estado da sessão do Android Auto (nem reviver a sessão, nem anexar o mapa do AA).
+     */
+    fun onExternalNavigationUpdate(update: AndroidAutoNavigationTelemetry.Directions, nowMs: Long = SystemClock.elapsedRealtime()) {
+        br.com.redesurftank.havalshisuku.hud.HudOverlayController.onDirections(update)
+        publishDirections(update, nowMs, force = false)
+        mainHandler.removeCallbacks(flushDirectionsRunnable)
+        mainHandler.postDelayed(flushDirectionsRunnable, AndroidAutoNavigationTelemetry.THROTTLE_MS)
+    }
+
     fun snapshotDirectionsJson(): String = directionsPublisher.lastJson()
 
     /** Whether the cluster theme gets the turn-by-turn ([SharedPreferencesKeys.CLUSTER_SHOW_NAVIGATION]). */

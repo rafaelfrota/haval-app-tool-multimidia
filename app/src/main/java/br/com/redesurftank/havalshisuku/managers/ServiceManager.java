@@ -666,6 +666,11 @@ public class ServiceManager {
         timeInitialized = SystemClock.uptimeMillis();
         AndroidAutoClusterController.INSTANCE.start();
         br.com.redesurftank.havalshisuku.services.AndroidAutoNavigationMonitor.INSTANCE.start(context);
+        try {
+            br.com.redesurftank.havalshisuku.services.CarPlayGuidanceMonitor.INSTANCE.start(context);
+        } catch (Throwable t) {
+            Log.e(TAG, "Error starting CarPlayGuidanceMonitor", t);
+        }
 
         Log.w(TAG, "Starting SimulatorGateway");
         try {
@@ -1252,6 +1257,11 @@ public class ServiceManager {
         servicesInitialized = true;
         AndroidAutoClusterController.INSTANCE.start();
         br.com.redesurftank.havalshisuku.services.AndroidAutoNavigationMonitor.INSTANCE.start(context);
+        try {
+            br.com.redesurftank.havalshisuku.services.CarPlayGuidanceMonitor.INSTANCE.start(context);
+        } catch (Throwable t) {
+            Log.e(TAG, "Error starting CarPlayGuidanceMonitor", t);
+        }
         br.com.redesurftank.havalshisuku.hud.HudOverlayController.INSTANCE.start();
         br.com.redesurftank.havalshisuku.radar.RadarManager.INSTANCE.start();
         synchronized (pendingTasks) {
