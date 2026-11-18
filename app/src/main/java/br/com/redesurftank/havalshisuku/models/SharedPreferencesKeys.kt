@@ -571,6 +571,11 @@ enum class SharedPreferencesKeys(val key: String, val description: String) {
             "clusterWarningDismissedCards",
             "Avisos do cluster dispensados neste boot, restaurados se o app reiniciar no meio do trajeto"
     ),
+    // ===== Barra do ar na borda esquerda (fork rafaelfrota) =====
+    LEFT_AC_RAIL_ENABLED(
+            "leftAcRailEnabled",
+            "Barra do ar-condicionado que desliza da borda esquerda da tela central"
+    ),
     // ===== Gestos de vários dedos na tela =====
     ENABLE_SCREEN_GESTURES(
             "enableScreenGestures",

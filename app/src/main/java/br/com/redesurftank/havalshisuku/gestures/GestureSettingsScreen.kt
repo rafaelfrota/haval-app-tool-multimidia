@@ -157,6 +157,8 @@ fun GestureSettingsScreen(onBackToFeatures: () -> Unit) {
             }
         }
 
+        LeftAcRailCard(prefs)
+
         SensitivityCard()
 
         for (fingers in GestureBindings.FINGER_COUNTS) {
@@ -502,3 +504,43 @@ private fun labelOf(action: Action?): String =
         Action.PASSENGER_TEMP -> "temp. passageiro"
         Action.FAN -> "ventilação"
     }
+
+
+/** Liga/desliga a barra do ar que sai da borda esquerda ([LeftAcRail]). */
+@Composable
+private fun LeftAcRailCard(prefs: android.content.SharedPreferences) {
+    var railEnabled by remember {
+        mutableStateOf(prefs.getBoolean(SharedPreferencesKeys.LEFT_AC_RAIL_ENABLED.key, false))
+    }
+    StyledCard {
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(20.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Column(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(4.dp),
+            ) {
+                Text(
+                    "Barra do ar na borda esquerda",
+                    color = AppColors.TextPrimary,
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.SemiBold,
+                )
+                Text(
+                    "Deslize da borda esquerda para a direita (ou toque na alça) para abrir temperatura, ventilação, A/C, Auto e Circular. Fecha sozinha. Use junto com \"Manter o painel lateral esquerdo oculto\".",
+                    color = AppColors.TextSecondary,
+                    fontSize = 14.sp,
+                )
+            }
+            Switch(
+                checked = railEnabled,
+                onCheckedChange = {
+                    railEnabled = it
+                    prefs.edit { putBoolean(SharedPreferencesKeys.LEFT_AC_RAIL_ENABLED.key, it) }
+                    LeftAcRail.setEnabled(it)
+                },
+            )
+        }
+    }
+}

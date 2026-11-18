@@ -812,6 +812,12 @@ public class ForegroundService extends Service implements Shizuku.OnBinderDeadLi
         }
 
         try {
+            br.com.redesurftank.havalshisuku.gestures.LeftAcRail.INSTANCE.onServicesReady();
+        } catch (Exception e) {
+            Log.e(TAG, "Error starting LeftAcRail: " + e.getMessage(), e);
+        }
+
+        try {
             HotRouterManager.getInstance().onServicesReady();
         } catch (Exception e) {
             Log.e(TAG, "Error starting HotRouter: " + e.getMessage(), e);
