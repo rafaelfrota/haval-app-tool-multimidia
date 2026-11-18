@@ -2716,7 +2716,9 @@ public class ServiceManager {
                 float currentSpeed = Float.parseFloat(value);
                 boolean closeWindowOnSpeed = sharedPreferences.getBoolean(SharedPreferencesKeys.CLOSE_WINDOWS_ON_SPEED.getKey(), false);
                 boolean closeSunRoofOnSpeed = sharedPreferences.getBoolean(SharedPreferencesKeys.CLOSE_SUNROOF_ON_SPEED.getKey(), false);
-                if (currentSpeed > sharedPreferences.getFloat(SharedPreferencesKeys.SPEED_THRESHOLD.getKey(), 15f)) {
+                float windowSpeedThreshold = sharedPreferences.getFloat(SharedPreferencesKeys.SPEED_THRESHOLD.getKey(), 15f);
+                float sunroofSpeedThreshold = sharedPreferences.getFloat(SharedPreferencesKeys.SUNROOF_SPEED_THRESHOLD.getKey(), 15f);
+                if (currentSpeed > windowSpeedThreshold) {
                     if (!closeWindowDueToeSpeed) {
                         if (closeWindowOnSpeed) {
                             closeAllWindow();
@@ -2724,7 +2726,7 @@ public class ServiceManager {
                         closeWindowDueToeSpeed = true;
                     }
                 }
-                if (currentSpeed > sharedPreferences.getFloat(SharedPreferencesKeys.SUNROOF_SPEED_THRESHOLD.getKey(), 15f)) {
+                if (currentSpeed > sunroofSpeedThreshold) {
                     if (!closeSunroofDueToeSpeed) {
                         if (closeSunRoofOnSpeed) {
                             closeSunRoof(false);
@@ -2732,8 +2734,13 @@ public class ServiceManager {
                         closeSunroofDueToeSpeed = true;
                     }
                 }
-                if (currentSpeed <= 10 && (closeWindowDueToeSpeed || closeSunroofDueToeSpeed)) {
+                // Issue #11: rearm once the car is clearly below the chosen speed again, not only
+                // near a stop, so a window opened on the highway closes again on the next speed-up.
+                // The hysteresis keeps it from firing repeatedly around the threshold.
+                if (closeWindowDueToeSpeed && currentSpeed <= speedRearmLimit(windowSpeedThreshold)) {
                     closeWindowDueToeSpeed = false;
+                }
+                if (closeSunroofDueToeSpeed && currentSpeed <= speedRearmLimit(sunroofSpeedThreshold)) {
                     closeSunroofDueToeSpeed = false;
                 }
                 if (currentSpeed <= 0 & sharedPreferences.getBoolean(SharedPreferencesKeys.DISABLE_AVM_CAR_STOPPED.getKey(), false) && !getData(CarConstants.CAR_BASIC_GEAR_STATUS.getValue()).equals("4")) {
@@ -4758,4 +4765,12 @@ public class ServiceManager {
             Log.w(TAG, "registerMobileDataTetherReceiver: " + t.getMessage());
         }
     }
+
+    static final float SPEED_REARM_HYSTERESIS_KMH = 20f;
+    static final float SPEED_REARM_FLOOR_KMH = 10f;
+
+    static float speedRearmLimit(float threshold) {
+        return Math.max(SPEED_REARM_FLOOR_KMH, threshold - SPEED_REARM_HYSTERESIS_KMH);
+    }
+
 }

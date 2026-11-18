@@ -11,6 +11,8 @@ export const KEYS = {
     ENGINE_SPEED: "car.basic.engine_speed",
     INSTANT_FUEL_CONSUMPTION: "car.basic.instant_fuel_consumption",
     TOTAL_ODOMETER: "car.basic.total_odometer",
+    DOOR_STATUS: "car.basic.door_status",
+    GLOBAL_ALARM_INDICATOR: "car.ipk_light.global_alarm_indicator",
     GEAR_STATUS: "car.basic.gear_status",
     ESP_ENABLE: "car.drive_setting.esp_enable",
     POWER_MODEL_CONFIG: "car.ev_setting.power_model_config", // EV Mode
