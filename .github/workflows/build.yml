@@ -2,7 +2,7 @@ name: Build and Release APK
 
 on:
   push:
-    branches: [master, preview]
+    branches: [master, preview, rafael]
   workflow_dispatch:
     inputs:
       version:
