@@ -88,6 +88,8 @@ class BottomBarService : LifecycleService() {
     private var androidAutoNowPlayingMonitor: AndroidAutoNowPlayingMonitor? = null
     private var carPlayUsbDisconnectMonitorJob: Job? = null
     private var lastCarPlayUsbReadyState: Boolean? = null
+    private var cachedCarPlaySessionVisible = false
+    private var cachedCarPlaySessionVisibleAtMs = 0L
     private var nativeMediaStateListener: IDataChanged? = null
     private var androidAutoMonitorRefreshJob: Job? = null
     private var audioMuteStateListener: IDataChanged? = null
@@ -1176,10 +1178,17 @@ class BottomBarService : LifecycleService() {
                                         .cleanupStaleAndroidAutoVisualStacksIfDisconnected(
                                                 "projection USB disconnected"
                                         )
+                                // Wireless CarPlay never brings the projection USB gadget up, so a
+                                // disconnected USB state alone must not wipe the now playing feed
+                                // while the CarPlay activity is still on display 0 or 3.
+                                val carPlaySessionVisible =
+                                        isCarPlayMediaPackage(BottomBarState.mediaPackageName) &&
+                                                isCarPlaySessionVisibleCached()
                                 withContext(Dispatchers.Main) {
                                     if (shouldClearCarPlayMediaOnUsbState(
                                                     BottomBarState.mediaPackageName,
-                                                    rawState
+                                                    rawState,
+                                                    carPlaySessionVisible = carPlaySessionVisible
                                             )
                                     ) {
                                         clearCarPlayMediaState("projection USB disconnected")
@@ -1199,6 +1208,25 @@ class BottomBarService : LifecycleService() {
                         delay(CARPLAY_USB_MEDIA_STATE_POLL_MS)
                     }
                 }
+    }
+
+    private fun isCarPlaySessionVisibleCached(): Boolean {
+        val now = SystemClock.elapsedRealtime()
+        if (
+                cachedCarPlaySessionVisibleAtMs > 0L &&
+                        now - cachedCarPlaySessionVisibleAtMs in 0..CARPLAY_SESSION_VISIBLE_CACHE_MS
+        ) {
+            return cachedCarPlaySessionVisible
+        }
+        val visible =
+                runCatching {
+                            DisplayAppLauncher.isCarPlayOnDisplay(0) ||
+                                    DisplayAppLauncher.isCarPlayOnDisplay(3)
+                        }
+                        .getOrDefault(false)
+        cachedCarPlaySessionVisible = visible
+        cachedCarPlaySessionVisibleAtMs = now
+        return visible
     }
 
     private fun readProjectionUsbState(): String? {
@@ -4575,6 +4603,7 @@ class BottomBarService : LifecycleService() {
         private const val DASHBOARD_CONTROL_FOCUS_SUPPRESS_MS = 1_500L
         private const val PROJECTION_USB_STATE_PATH = "/sys/class/android_usb/android0/state"
         private const val CARPLAY_USB_MEDIA_STATE_POLL_MS = 1_500L
+        private const val CARPLAY_SESSION_VISIBLE_CACHE_MS = 5_000L
         private const val PROJECTION_USB_STATE_CACHE_MS = 3_000L
         private const val ANDROID_AUTO_MEDIA_SESSION_READY_CACHE_MS = 1_500L
         private const val NATIVE_AUDIO_MUTE_TOGGLE_ACTION = "2"
@@ -4745,9 +4774,11 @@ class BottomBarService : LifecycleService() {
 
         internal fun shouldClearCarPlayMediaOnUsbState(
                 packageName: String?,
-                rawState: String
+                rawState: String,
+                carPlaySessionVisible: Boolean = false
         ): Boolean {
             return isCarPlayMediaPackageName(packageName) &&
+                    !carPlaySessionVisible &&
                     !isProjectionUsbReadyForMedia(rawState)
         }
 

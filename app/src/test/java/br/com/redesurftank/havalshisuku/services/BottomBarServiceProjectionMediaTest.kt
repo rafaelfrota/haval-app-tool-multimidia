@@ -23,6 +23,24 @@ class BottomBarServiceProjectionMediaTest {
     }
 
     @Test
+    fun keepsWirelessCarPlayMediaWhileSessionIsVisible() {
+        assertFalse(
+                BottomBarService.shouldClearCarPlayMediaOnUsbState(
+                        packageName = "com.ts.carplay",
+                        rawState = "DISCONNECTED",
+                        carPlaySessionVisible = true
+                )
+        )
+        assertTrue(
+                BottomBarService.shouldClearCarPlayMediaOnUsbState(
+                        packageName = "com.ts.carplay",
+                        rawState = "DISCONNECTED",
+                        carPlaySessionVisible = false
+                )
+        )
+    }
+
+    @Test
     fun clearsProjectionMediaWhenUsbDisconnects() {
         assertTrue(
                 BottomBarService.shouldClearCarPlayMediaOnUsbState(
