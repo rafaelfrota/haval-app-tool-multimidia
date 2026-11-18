@@ -6931,7 +6931,7 @@ private fun DashboardMediaPanel(
                                         DashboardArtworkFallback(
                                                 appIcon = appIcon,
                                                 activeProjectionPackage = activeProjectionPackage,
-                                                modifier = Modifier.fillMaxSize().
+                                                modifier = Modifier.fillMaxSize()
                                         )
                                 }
                                 Column(
