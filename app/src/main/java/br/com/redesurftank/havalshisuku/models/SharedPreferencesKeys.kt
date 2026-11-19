@@ -577,11 +577,6 @@ enum class SharedPreferencesKeys(val key: String, val description: String) {
     TRIP_ENERGY_TARIFF("tripEnergyTariff", "Preço do kWh na conta de luz (R$)"),
     TRIP_ENERGY_FUEL_PRICE("tripEnergyFuelPrice", "Preço do litro da gasolina (R$)"),
     TRIP_ENERGY_CHARGE_LOSS("tripEnergyChargeLoss", "Perda na recarga em casa (%)"),
-    // ===== Barra do ar na borda esquerda (fork rafaelfrota) =====
-    LEFT_AC_RAIL_ENABLED(
-            "leftAcRailEnabled",
-            "Barra do ar-condicionado que desliza da borda esquerda da tela central"
-    ),
     // ===== Gestos de vários dedos na tela =====
     ENABLE_SCREEN_GESTURES(
             "enableScreenGestures",

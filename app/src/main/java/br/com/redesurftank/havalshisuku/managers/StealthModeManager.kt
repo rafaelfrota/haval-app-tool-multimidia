@@ -152,7 +152,6 @@ object StealthModeManager {
             // --- Aviso de voz do cinto: o duck da música é ativação própria ---
             // --- Gestos na tela: leem o toque e desenham por cima de qualquer app ---
             SharedPreferencesKeys.ENABLE_SCREEN_GESTURES,
-            SharedPreferencesKeys.LEFT_AC_RAIL_ENABLED,
         )
 
     /**
@@ -821,9 +820,6 @@ object StealthModeManager {
             step("stop_screen_gestures") {
                 br.com.redesurftank.havalshisuku.gestures.ScreenGestureManager.setEnabled(false)
             }
-            step("stop_left_ac_rail") {
-                br.com.redesurftank.havalshisuku.gestures.LeftAcRail.setEnabled(false)
-            }
             // Devolve o 4G e a telemetria OEM: no modo o carro tem que se comportar como de fábrica.
             step("release_mobile_data") { MobileDataManager.recomputeAndApply(appContext) }
             step("release_datatrack") { MobileDataManager.applyDatatrackState() }
@@ -912,9 +908,6 @@ object StealthModeManager {
             step("restart_hot_router") { HotRouterManager.getInstance().onServicesReady() }
             step("restart_screen_gestures") {
                 br.com.redesurftank.havalshisuku.gestures.ScreenGestureManager.onServicesReady()
-            }
-            step("restart_left_ac_rail") {
-                br.com.redesurftank.havalshisuku.gestures.LeftAcRail.onServicesReady()
             }
             step("reapply_mobile_data") { MobileDataManager.recomputeAndApply(appContext) }
             step("reapply_datatrack") { MobileDataManager.applyDatatrackState() }
