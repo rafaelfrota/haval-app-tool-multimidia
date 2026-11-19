@@ -603,11 +603,6 @@ class ThemeBridgeImpl(private val context: IBridgeContext) {
             "car.basic.tire_pressure_front_right",
             "car.basic.tire_pressure_rear_left",
             "car.basic.tire_pressure_rear_right",
-            // Issue #164: door array (driver, passenger, rear left, rear right, trunk, hood;
-            // only the driver slot is confirmed on a 2025 H6) and the global alarm lamp, so
-            // themes can react to open doors and to warnings outside monitoredWarningKeys.
-            "car.basic.door_status",
-            "car.ipk_light.global_alarm_indicator",
             "car.ev_info.cur_battery_power_percentage",
             "car.ev_info.fuel_mode_remain_odometer",
             "car.ev_info.electric_mode_remain_odometer",
