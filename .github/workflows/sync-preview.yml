@@ -5,7 +5,8 @@ name: Acompanhar a preview oficial
 
 on:
   schedule:
-    - cron: "17 */4 * * *"
+    # Uma vez por dia, 09:17 UTC (05:17 em Manaus)
+    - cron: "17 9 * * *"
   workflow_dispatch:
 
 permissions:
