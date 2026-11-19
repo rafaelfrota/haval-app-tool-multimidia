@@ -57,6 +57,9 @@ jobs:
           LATEST_BUILD=$(git tag --list "v*" | grep -oP 'v\d+\.\d+\.\d+\.\K\d+' | sort -rn | head -1)
           if [ -z "$LATEST_BUILD" ]; then LATEST_BUILD=-1; fi
           NEW_BUILD=$((LATEST_BUILD + 1))
+          # Fork rafaelfrota: numeração acima da oficial (a preview passa de 90), para o nosso
+          # versionCode nunca ficar abaixo do Impulse oficial instalado.
+          if [ "$BRANCH_NAME" = "rafael" ] && [ "$NEW_BUILD" -lt 200 ]; then NEW_BUILD=200; fi
 
           NEW_VERSION_BASE="${VERSION_BASE}.$NEW_BUILD"
 

@@ -1,0 +1,63 @@
+name: Acompanhar a preview oficial
+
+# Traz a preview do Impulse oficial para o ramo `rafael` e dispara um APK novo.
+# Se a mesclagem der conflito, nada é publicado e o workflow fica vermelho (o GitHub avisa por e-mail).
+
+on:
+  schedule:
+    - cron: "17 */4 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  actions: write
+
+concurrency:
+  group: sync-preview
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: rafael
+          fetch-depth: 0
+
+      - name: Mesclar a preview oficial
+        id: merge
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git remote add upstream https://github.com/bobaoapae/haval-app-tool-multimidia.git
+          git fetch --no-tags upstream preview
+          UP=$(git rev-parse upstream/preview)
+          echo "upstream=$UP" >> "$GITHUB_OUTPUT"
+          if git merge-base --is-ancestor "$UP" HEAD; then
+            echo "Já estamos em dia com a preview ($UP)."
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          if git merge --no-edit -m "merge: preview oficial ${UP:0:8}" upstream/preview; then
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          else
+            git merge --abort || true
+            echo "conflict=true" >> "$GITHUB_OUTPUT"
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Publicar e compilar
+        if: steps.merge.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          git push origin HEAD:rafael
+          # Push feito com o GITHUB_TOKEN não dispara outros workflows; o build vai por dispatch.
+          gh workflow run build.yml --ref rafael -f version=1.0.0
+
+      - name: Avisar conflito
+        if: steps.merge.outputs.conflict == 'true'
+        run: |
+          echo "::error::A preview ${{ steps.merge.outputs.upstream }} deu conflito com o ramo rafael. Nada foi publicado; o APK atual continua valendo."
+          exit 1
