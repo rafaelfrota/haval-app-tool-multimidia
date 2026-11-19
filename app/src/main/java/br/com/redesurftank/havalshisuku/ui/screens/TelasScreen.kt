@@ -1474,7 +1474,7 @@ fun TelasTab() {
                                             fontWeight = FontWeight.Medium
                                         )
                                     } else {
-                                        val nextKmLabel = String.format("%,d", nextKm) + " km"
+                                        val nextKmLabel = br.com.redesurftank.havalshisuku.utils.KmFormat.format(nextKm) + " km"
                                         val nextDateLabel = dateFormatter.format(nextDate)
                                         Text(
                                             "$nextKmLabel ou $nextDateLabel",
@@ -1567,7 +1567,7 @@ fun TelasTab() {
                                                 // Column 2: Entry description (mileage or compra) - increased font size
                                                 Text(
                                                     text = if (entry.km != 0) {
-                                                        "${String.format("%,d", entry.km)} km"
+                                                        "${br.com.redesurftank.havalshisuku.utils.KmFormat.format(entry.km)} km"
                                                     } else {
                                                         "Data de Compra"
                                                     },
@@ -2250,12 +2250,16 @@ fun TelasTab() {
                         StyledTextField(
                                 value = tempKm,
                                 onValueChange = {
-                                    if (it.isEmpty() || it.toIntOrNull() != null) tempKm = it
+                                    // Só dígitos: os pontos de milhar são só visuais (issue #131).
+                                    val digits = it.filter(Char::isDigit).take(7)
+                                    if (digits.isEmpty() || digits.toIntOrNull() != null) tempKm = digits
                                 },
-                                label = { Text("Kilometragem Atual") },
+                                label = { Text("Quilometragem atual") },
                                 modifier = Modifier.fillMaxWidth(),
                                 keyboardOptions =
-                                        KeyboardOptions(keyboardType = KeyboardType.Number)
+                                        KeyboardOptions(keyboardType = KeyboardType.Number),
+                                visualTransformation =
+                                        br.com.redesurftank.havalshisuku.utils.KmVisualTransformation()
                         )
 
                         Column {

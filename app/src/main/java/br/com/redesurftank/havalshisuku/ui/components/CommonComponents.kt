@@ -427,7 +427,9 @@ fun StyledTextField(
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
     singleLine: Boolean = true,
-    keyboardOptions: KeyboardOptions = KeyboardOptions.Default
+    keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
+    visualTransformation: androidx.compose.ui.text.input.VisualTransformation =
+        androidx.compose.ui.text.input.VisualTransformation.None
 ) {
     TextField(
         value = value,
@@ -437,6 +439,7 @@ fun StyledTextField(
         enabled = enabled,
         singleLine = singleLine,
         keyboardOptions = keyboardOptions,
+        visualTransformation = visualTransformation,
         colors = TextFieldDefaults.colors(
             focusedContainerColor = AppColors.SurfaceVariant,
             unfocusedContainerColor = AppColors.SurfaceVariant,
