@@ -576,38 +576,5 @@ enum class SharedPreferencesKeys(val key: String, val description: String) {
     TRIP_ENERGY_HISTORY("tripEnergyHistory", "Últimas viagens da energia (JSON)"),
     TRIP_ENERGY_TARIFF("tripEnergyTariff", "Preço do kWh na conta de luz (R$)"),
     TRIP_ENERGY_FUEL_PRICE("tripEnergyFuelPrice", "Preço do litro da gasolina (R$)"),
-    TRIP_ENERGY_CHARGE_LOSS("tripEnergyChargeLoss", "Perda na recarga em casa (%)"),
-    // ===== Gestos de vários dedos na tela =====
-    ENABLE_SCREEN_GESTURES(
-            "enableScreenGestures",
-            "Gestos de vários dedos na tela para volume, temperatura e ventilação"
-    ),
-    SCREEN_GESTURE_BINDINGS(
-            "screenGestureBindings",
-            "Quais gestos fazem o quê (dedos:eixo:zona=ação)"
-    ),
-    // Sensibilidade, em MILÉSIMOS de altura de tela por passo. Maior = mais lento. A tela mostra
-    // isso traduzido para "quanto muda num arraste de meia tela".
-    SCREEN_GESTURE_STEP_VOLUME(
-            "screenGestureStepVolume",
-            "Sensibilidade do volume (milésimos de altura de tela por passo)"
-    ),
-    SCREEN_GESTURE_STEP_TEMPERATURE(
-            "screenGestureStepTemperature",
-            "Sensibilidade da temperatura (milésimos de altura de tela por meio grau)"
-    ),
-    SCREEN_GESTURE_STEP_FAN(
-            "screenGestureStepFan",
-            "Sensibilidade da ventilação (milésimos de altura de tela por posição)"
-    ),
-    // Calibração do digitalizador. Só existem para acertar o sentido do gesto sem recompilar, caso
-    // um painel reporte a coordenada espelhada; a troca de eixos é detectada sozinha.
-    SCREEN_GESTURE_INVERT_X(
-            "screenGestureInvertX",
-            "Calibração: inverter o eixo horizontal do toque"
-    ),
-    SCREEN_GESTURE_INVERT_Y(
-            "screenGestureInvertY",
-            "Calibração: inverter o eixo vertical do toque"
-    )
+    TRIP_ENERGY_CHARGE_LOSS("tripEnergyChargeLoss", "Perda na recarga em casa (%)")
 }

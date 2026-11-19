@@ -17,13 +17,11 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.AdminPanelSettings
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.Construction
 import androidx.compose.material.icons.filled.Radar
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Speed
-import androidx.compose.material.icons.filled.TouchApp
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedButton
@@ -43,7 +41,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import br.com.redesurftank.App
-import br.com.redesurftank.havalshisuku.gestures.GestureSettingsScreen
 import br.com.redesurftank.havalshisuku.ambientlight.AmbientLightSettingsScreen
 import br.com.redesurftank.havalshisuku.models.SharedPreferencesKeys
 import br.com.redesurftank.havalshisuku.radar.RadarSettings
@@ -58,13 +55,11 @@ fun FeaturesHubScreen() {
         "score" -> TripConsistencyScreen(onBackToFeatures = { selectedFeature = null })
         "ambient_light" -> AmbientLightSettingsScreen(onBackToFeatures = { selectedFeature = null })
         "radar" -> RadarSettingsScreen(onBackToFeatures = { selectedFeature = null })
-        "gestures" -> GestureSettingsScreen(onBackToFeatures = { selectedFeature = null })
         "energy" -> br.com.redesurftank.havalshisuku.energy.TripEnergyScreen(onBackToFeatures = { selectedFeature = null })
         else -> FeaturesHome(
             onOpenScore = { selectedFeature = "score" },
             onOpenAmbientLight = { selectedFeature = "ambient_light" },
             onOpenRadar = { selectedFeature = "radar" },
-            onOpenGestures = { selectedFeature = "gestures" },
             onOpenEnergy = { selectedFeature = "energy" }
         )
     }
@@ -75,7 +70,6 @@ private fun FeaturesHome(
     onOpenScore: () -> Unit,
     onOpenAmbientLight: () -> Unit,
     onOpenRadar: () -> Unit,
-    onOpenGestures: () -> Unit,
     onOpenEnergy: () -> Unit
 ) {
     val prefs =
@@ -122,39 +116,6 @@ private fun FeaturesHome(
                     enabled = true,
                     modifier = Modifier.weight(1f),
                     onClick = onOpenAmbientLight
-                )
-            } else {
-                FeatureCard(
-                    title = "Vallet",
-                    description = "Área reservada para controles e regras de uso em modo manobrista.",
-                    status = "Em breve",
-                    icon = Icons.Default.AdminPanelSettings,
-                    enabled = false,
-                    modifier = Modifier.weight(1f),
-                    onClick = {}
-                )
-            }
-        }
-
-        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(18.dp)) {
-            FeatureCard(
-                title = "Gestos na tela",
-                description = "Arraste com varios dedos, por cima de qualquer app, para volume, temperatura e ventilacao.",
-                status = "Disponivel",
-                icon = Icons.Default.TouchApp,
-                enabled = true,
-                modifier = Modifier.weight(1f),
-                onClick = onOpenGestures
-            )
-            if (ambientLightEnabled) {
-                FeatureCard(
-                    title = "Vallet",
-                    description = "Área reservada para controles e regras de uso em modo manobrista.",
-                    status = "Em breve",
-                    icon = Icons.Default.AdminPanelSettings,
-                    enabled = false,
-                    modifier = Modifier.weight(1f),
-                    onClick = {}
                 )
             } else {
                 EnergyFeatureCard(Modifier.weight(1f), onOpenEnergy)
@@ -263,7 +224,6 @@ private fun FeatureCard(
         }
     }
 }
-
 
 @Composable
 private fun EnergyFeatureCard(modifier: Modifier, onClick: () -> Unit) {
