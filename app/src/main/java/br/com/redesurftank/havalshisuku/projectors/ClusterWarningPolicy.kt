@@ -303,4 +303,19 @@ internal object ClusterWarningPolicy {
             cardTopSinceMs: Long?,
             fallbackMs: Long
     ): Long = listOfNotNull(keyOnsetMs, cardTopSinceMs).maxOrNull() ?: fallbackMs
+
+    /** Card id of the seat belt warning (fork rafaelfrota). */
+    val beltCardId: String
+        get() = cardIdFor(CarConstants.CAR_BASIC_SEAT_BELT_WARNING.value)
+
+    /**
+     * How long the belt card may hold the right dial before Impulse acknowledges it on its own,
+     * or null when it should not. Never below the car's own BACK lockout, so the theme does not
+     * take the dial back while the car would still refuse to close its card.
+     */
+    fun beltAutoHideDelayMs(enabled: Boolean, seconds: Int): Long? {
+        if (!enabled) return null
+        val ms = seconds.coerceIn(3, 30) * 1000L
+        return maxOf(ms, DISMISS_LOCKOUT_MS + 30L)
+    }
 }

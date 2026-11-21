@@ -335,6 +335,16 @@ fun BasicSettingsTab() {
                         prefs.getBoolean(SharedPreferencesKeys.DISABLE_AVM_CAR_STOPPED.key, false)
                 )
         }
+        var beltCardAutoHide by remember {
+                mutableStateOf(
+                        prefs.getBoolean(SharedPreferencesKeys.BELT_CARD_AUTO_HIDE.key, true)
+                )
+        }
+        var carPlayKeepAspect by remember {
+                mutableStateOf(
+                        prefs.getBoolean(SharedPreferencesKeys.CARPLAY_KEEP_ASPECT.key, true)
+                )
+        }
         var closeWindowOnPowerOff by remember {
                 mutableStateOf(
                         prefs.getBoolean(SharedPreferencesKeys.CLOSE_WINDOW_ON_POWER_OFF.key, false)
@@ -2908,6 +2918,38 @@ fun BasicSettingsTab() {
                                                         SharedPreferencesKeys
                                                                 .DISABLE_AVM_CAR_STOPPED
                                                                 .key,
+                                                        it
+                                                )
+                                        }
+                                }
+                        ),
+                        SettingItem(
+                                title = "Esconder aviso do cinto no painel",
+                                group = SettingsGroups.SAFETY,
+                                description =
+                                        "O quadro do cinto some do círculo direito depois de 5 s. O bipe e a luz do cinto continuam.",
+                                checked = beltCardAutoHide,
+                                onCheckedChange = {
+                                        beltCardAutoHide = it
+                                        prefs.edit {
+                                                putBoolean(
+                                                        SharedPreferencesKeys.BELT_CARD_AUTO_HIDE.key,
+                                                        it
+                                                )
+                                        }
+                                }
+                        ),
+                        SettingItem(
+                                title = "CarPlay sem esticar acima da barra",
+                                group = SettingsGroups.DISPLAY,
+                                description =
+                                        "Encolhe o CarPlay por igual para caber acima da barra de baixo, sem achatar a imagem. Sobram faixas pretas finas nas laterais.",
+                                checked = carPlayKeepAspect,
+                                onCheckedChange = {
+                                        carPlayKeepAspect = it
+                                        prefs.edit {
+                                                putBoolean(
+                                                        SharedPreferencesKeys.CARPLAY_KEEP_ASPECT.key,
                                                         it
                                                 )
                                         }

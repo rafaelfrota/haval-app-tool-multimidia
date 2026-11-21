@@ -576,5 +576,10 @@ enum class SharedPreferencesKeys(val key: String, val description: String) {
     TRIP_ENERGY_HISTORY("tripEnergyHistory", "Últimas viagens da energia (JSON)"),
     TRIP_ENERGY_TARIFF("tripEnergyTariff", "Preço do kWh na conta de luz (R$)"),
     TRIP_ENERGY_FUEL_PRICE("tripEnergyFuelPrice", "Preço do litro da gasolina (R$)"),
-    TRIP_ENERGY_CHARGE_LOSS("tripEnergyChargeLoss", "Perda na recarga em casa (%)")
+    TRIP_ENERGY_CHARGE_LOSS("tripEnergyChargeLoss", "Perda na recarga em casa (%)"),
+    // ===== Ajustes do fork rafaelfrota (21/11) =====
+    BELT_CARD_AUTO_HIDE("beltCardAutoHide", "Esconder o aviso do cinto no painel depois de alguns segundos"),
+    BELT_CARD_AUTO_HIDE_SECONDS("beltCardAutoHideSeconds", "Segundos até esconder o aviso do cinto no painel"),
+    CARPLAY_KEEP_ASPECT("carPlayKeepAspect", "CarPlay acima da barra sem esticar (encolhe por igual)"),
+    AVM_AUTO_PREVIEW_SAVED("avmAutoPreviewSaved", "Câmera automática do carro guardada enquanto o Impulse a desliga com o carro parado")
 }

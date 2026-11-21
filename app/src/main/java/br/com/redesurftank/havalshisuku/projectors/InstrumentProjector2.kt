@@ -199,6 +199,8 @@ class InstrumentProjector2(private val outerContext: Context, display: Display) 
      */
     private val warningCardTopSince = java.util.concurrent.ConcurrentHashMap<String, Long>()
     private var lastTopWarningCardId: String? = null
+    /** Pending belt auto-hide (fork rafaelfrota): acknowledges the belt card after a few seconds. */
+    private var beltAutoHideRunnable: Runnable? = null
     /** Pending hold-off before the layout follows a warning that cleared on its own. */
     private var warningClearRunnable: Runnable? = null
     private var projectionOverlayBypassActive: Boolean? = null
@@ -2850,7 +2852,42 @@ class InstrumentProjector2(private val outerContext: Context, display: Display) 
                 )
             }
             lastTopWarningCardId = topId
+            scheduleBeltAutoHide(topId)
         }
+    }
+
+    /**
+     * The belt card sits over the right dial for as long as anyone is unbuckled, on top of the
+     * chime and the belt lamp. When the driver opts in, Impulse acknowledges it on its own after
+     * a few seconds, as if BACK had been pressed, so the theme takes the right dial back. The
+     * chime and the lamp are the car's and stay.
+     */
+    private fun scheduleBeltAutoHide(topId: String?) {
+        beltAutoHideRunnable?.let { handler.removeCallbacks(it) }
+        beltAutoHideRunnable = null
+        val beltId = ClusterWarningPolicy.beltCardId
+        if (topId != beltId) return
+        val delayMs =
+                ClusterWarningPolicy.beltAutoHideDelayMs(
+                        preferences.getBoolean(SharedPreferencesKeys.BELT_CARD_AUTO_HIDE.key, true),
+                        preferences.getInt(SharedPreferencesKeys.BELT_CARD_AUTO_HIDE_SECONDS.key, 5)
+                ) ?: return
+        val runnable = Runnable {
+            beltAutoHideRunnable = null
+            refreshWarningCardTopAnchor()
+            if (lastTopWarningCardId != beltId || beltId in dismissedCards) return@Runnable
+            dismissedCards.add(beltId)
+            dismissedCardSnapshots[beltId] =
+                    ClusterWarningPolicy.cardKeysFor(beltId).associateWith {
+                        currentWarningValue(it) ?: ""
+                    }
+            persistDismissals()
+            Log.w(TAG, "Belt card auto-hidden after ${delayMs}ms")
+            logClusterPerfEvent("belt_card_auto_hidden", mapOf("card" to beltId, "afterMs" to delayMs))
+            recomputeWarningState("BELT_AUTO_HIDE", immediate = true)
+        }
+        beltAutoHideRunnable = runnable
+        handler.postDelayed(runnable, delayMs)
     }
 
     /** True while any key behind [cardId] still reports an active value. */

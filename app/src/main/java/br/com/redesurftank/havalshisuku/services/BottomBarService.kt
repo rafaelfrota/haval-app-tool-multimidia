@@ -1031,6 +1031,8 @@ class BottomBarService : LifecycleService() {
                                 }
                             }
 
+                            reassertCarPlayOverscanIfLost(currentPackage)
+
                             // Update Frida status reactive to switches
                             updateFridaStatus(prefs)
                         } catch (e: Exception) {
@@ -3653,6 +3655,53 @@ class BottomBarService : LifecycleService() {
                 ?: BarSettings(overscan = defaultOverscan, yOffset = 0)
     }
 
+    // ===== CarPlay sem esticar (fork rafaelfrota) =====
+    /** Overscan the CarPlay keep-aspect mode last applied; null when the mode is not in charge. */
+    @Volatile private var expectedCarPlayOverscan: String? = null
+    private var lastCarPlayOverscanCheckMs = 0L
+
+    private fun isCarPlayPackage(pkg: String?): Boolean =
+            pkg == "com.ts.carplay.app" || pkg == "com.ts.carplay"
+
+    private fun isCarPlayKeepAspectEnabled(): Boolean =
+            br.com.redesurftank.App.getDeviceProtectedContext()
+                    .getSharedPreferences("haval_prefs", Context.MODE_PRIVATE)
+                    .getBoolean(SharedPreferencesKeys.CARPLAY_KEEP_ASPECT.key, true)
+
+    /** CarPlay gets the same bar height plus proportional side margins; everything else is unchanged. */
+    private fun overscanArgFor(pkg: String?, bottomPx: Int): String {
+        if (!isCarPlayPackage(pkg) || !isCarPlayKeepAspectEnabled()) return "0,0,0,$bottomPx"
+        val metrics = android.util.DisplayMetrics()
+        mWindowManager?.defaultDisplay?.getRealMetrics(metrics)
+        val width = if (metrics.widthPixels > 0) metrics.widthPixels else 1920
+        val height = if (metrics.heightPixels > 0) metrics.heightPixels else 720
+        val pane = if (BottomBarState.leftNavPaneShown) LEFT_NAV_PANE_WIDTH_PX else 0
+        val o = br.com.redesurftank.havalshisuku.utils.CarPlayAspect.overscanFor(bottomPx, width, height, pane)
+        Log.w("BottomBarService", "[CARPLAY_ASPECT] bottom=$bottomPx display=${width}x$height pane=$pane -> ${o.asWmArg()}")
+        return o.asWmArg()
+    }
+
+    /**
+     * CarPlay reconnecting or redrawing can leave display 0 without our overscan (the bar then sits
+     * on top of CarPlay again). While CarPlay is in front, check every few seconds and put it back.
+     */
+    private fun reassertCarPlayOverscanIfLost(currentPackage: String?) {
+        val expected = expectedCarPlayOverscan ?: return
+        if (!isCarPlayPackage(currentPackage) || !BottomBarState.isVisible) return
+        val now = System.currentTimeMillis()
+        if (now - lastCarPlayOverscanCheckMs < 5_000L) return
+        lastCarPlayOverscanCheckMs = now
+        val dump =
+                ShizukuUtils.runCommandAndGetOutput(
+                        arrayOf("sh", "-c", "dumpsys window displays 2>/dev/null | grep -m1 -oE 'overscan \\([0-9,-]+\\)'")
+                )
+        val actual = br.com.redesurftank.havalshisuku.utils.CarPlayAspect.parseOverscan(dump) ?: return
+        if (actual.asWmArg() != expected) {
+            Log.w("BottomBarService", "[CARPLAY_ASPECT] overscan lost (${actual.asWmArg()}), reapplying $expected")
+            ShizukuUtils.runCommandAndGetOutput(arrayOf("wm", "overscan", expected))
+        }
+    }
+
     private fun applyAppSettings(settings: BarSettings) {
         val wm = mWindowManager ?: return
         val cv = composeView ?: return
@@ -3682,8 +3731,12 @@ class BottomBarService : LifecycleService() {
                 "[OVERSCAN_SYNC] App: $lastPackage | Overscan: ${overscanValueRaw}dp(${overscanValuePx}px) | Offset: ${settings.yOffset}dp(${yOffsetPx}px) | Visible: ${BottomBarState.isVisible}"
         )
 
+        val overscanArg = overscanArgFor(lastPackage, overscanValuePx)
+        expectedCarPlayOverscan =
+                if (isCarPlayPackage(lastPackage) && isCarPlayKeepAspectEnabled()) overscanArg else null
+
         lifecycleScope.launch(Dispatchers.IO) {
-            ShizukuUtils.runCommandAndGetOutput(arrayOf("wm", "overscan", "0,0,0,$overscanValuePx"))
+            ShizukuUtils.runCommandAndGetOutput(arrayOf("wm", "overscan", overscanArg))
             withContext(Dispatchers.Main) {
                 // Apply custom yOffset relative to the logical bottom (where y=0 is the edge)
                 lp.y = yOffsetPx
@@ -3951,7 +4004,7 @@ class BottomBarService : LifecycleService() {
                     lp.height = (60 * density).toInt()
                     lp.y = 0
                 }
-                overscanCmd = arrayOf("wm", "overscan", "0,0,0,$overscanValuePx")
+                overscanCmd = arrayOf("wm", "overscan", overscanArgFor(lastPackage, overscanValuePx))
             } else {
                 withContext(Dispatchers.Main) {
                     BottomBarState.isDashboardExpanded = false
@@ -4193,7 +4246,7 @@ class BottomBarService : LifecycleService() {
 
                 lifecycleScope.launch(Dispatchers.IO) {
                     ShizukuUtils.runCommandAndGetOutput(
-                            arrayOf("wm", "overscan", "0,0,0,$overscanValuePx")
+                            arrayOf("wm", "overscan", overscanArgFor(lastPackage, overscanValuePx))
                     )
                 }
             } catch (e: Exception) {
@@ -4582,6 +4635,8 @@ class BottomBarService : LifecycleService() {
 
     companion object {
         private const val RESOURCE_OVERLAY_INTERVAL_MS = 2_500L
+        /** Width of the car's left navigation pane on display 0 (fork rafaelfrota). */
+        private const val LEFT_NAV_PANE_WIDTH_PX = 128
         private const val DEBUG_MEDIA_TAG = "BottomBarDebug"
         private const val ACTION_DEBUG_MEDIA_COMMAND =
                 "br.com.redesurftank.havalshisuku.DEBUG_MEDIA_COMMAND"

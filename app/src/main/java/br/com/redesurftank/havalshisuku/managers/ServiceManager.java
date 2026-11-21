@@ -1659,6 +1659,7 @@ public class ServiceManager {
                 cameraAVM = !cameraAVM;
                 sharedPreferences.edit().putBoolean(SharedPreferencesKeys.DISABLE_AVM_CAR_STOPPED.getKey(), cameraAVM).apply();
                 Log.w(TAG, "Camera AVM state changed to: " + cameraAVM);
+                syncAvmAutoPreviewGuard(parseSpeedOrZero(getData(CarConstants.CAR_BASIC_VEHICLE_SPEED.getValue())), getData(CarConstants.CAR_BASIC_GEAR_STATUS.getValue()));
                 break;
             case OPEN_AVM_ONCE:
                 try {
@@ -2615,6 +2616,45 @@ public class ServiceManager {
         }
     }
 
+    /**
+     * Issue #143 (fork rafaelfrota). "Desativar câmera AVM quando parado" used to wait for the
+     * camera to open and then close it, which still let the car beep and the screen flash. While
+     * the option is on and the car is stopped outside reverse, the car's own automatic preview is
+     * switched off so the camera does not open in the first place; the original value is kept in
+     * preferences (it survives an app restart) and put back as soon as the car moves, goes into
+     * reverse or the option is turned off. The reactive close stays as a fallback.
+     */
+    private void syncAvmAutoPreviewGuard(float speed, String gear) {
+        try {
+            boolean want = sharedPreferences.getBoolean(SharedPreferencesKeys.DISABLE_AVM_CAR_STOPPED.getKey(), false)
+                    && speed <= 0f
+                    && !"4".equals(gear);
+            String saved = sharedPreferences.getString(SharedPreferencesKeys.AVM_AUTO_PREVIEW_SAVED.getKey(), null);
+            String autoKey = CarConstants.SYS_AVM_AUTO_PREVIEW_ENABLE.getValue();
+            if (want && saved == null) {
+                String current = getData(autoKey);
+                if (current == null || current.isEmpty() || "0".equals(current)) return;
+                sharedPreferences.edit().putString(SharedPreferencesKeys.AVM_AUTO_PREVIEW_SAVED.getKey(), current).apply();
+                updateData(autoKey, "0");
+                Log.w(TAG, "[AVM_GUARD] stopped: auto preview " + current + " -> 0");
+            } else if (!want && saved != null) {
+                updateData(autoKey, saved);
+                sharedPreferences.edit().remove(SharedPreferencesKeys.AVM_AUTO_PREVIEW_SAVED.getKey()).apply();
+                Log.w(TAG, "[AVM_GUARD] moving/reverse/off: auto preview restored to " + saved);
+            }
+        } catch (Exception e) {
+            Log.e(TAG, "[AVM_GUARD] failed", e);
+        }
+    }
+
+    private static float parseSpeedOrZero(String raw) {
+        try {
+            return raw == null || raw.isEmpty() ? 0f : Float.parseFloat(raw);
+        } catch (NumberFormatException e) {
+            return 0f;
+        }
+    }
+
     public void OnDataChanged(String key, String value) {
         if (key != null && key.contains("door")) {
             Log.w(TAG, "[DOOR_DEBUG] key=" + key + " value=" + value);
@@ -2627,6 +2667,9 @@ public class ServiceManager {
             value = normalized;
         }
         dispatchTelemetryOnly(key, value);
+        if (key != null && value != null && key.equals(CarConstants.CAR_BASIC_GEAR_STATUS.getValue())) {
+            syncAvmAutoPreviewGuard(parseSpeedOrZero(getData(CarConstants.CAR_BASIC_VEHICLE_SPEED.getValue())), value);
+        }
         // Antes de qualquer gate: com o Modo Concessionária ativo esta é a porta de saída, e ela
         // não pode depender de nada que o modo tenha desligado.
         try {
@@ -2754,6 +2797,7 @@ public class ServiceManager {
                 }
             } else if (key.equals(CarConstants.CAR_BASIC_VEHICLE_SPEED.getValue())) {
                 float currentSpeed = Float.parseFloat(value);
+                syncAvmAutoPreviewGuard(currentSpeed, getData(CarConstants.CAR_BASIC_GEAR_STATUS.getValue()));
                 boolean closeWindowOnSpeed = sharedPreferences.getBoolean(SharedPreferencesKeys.CLOSE_WINDOWS_ON_SPEED.getKey(), false);
                 boolean closeSunRoofOnSpeed = sharedPreferences.getBoolean(SharedPreferencesKeys.CLOSE_SUNROOF_ON_SPEED.getKey(), false);
                 float windowSpeedThreshold = sharedPreferences.getFloat(SharedPreferencesKeys.SPEED_THRESHOLD.getKey(), 15f);
